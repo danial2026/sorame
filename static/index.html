@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sorame - URL Shortener</title>
+    <style>
+      body {
+        background-color: #121212;
+        color: white;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .container {
+        width: 90%;
+        max-width: 480px;
+      }
+
+      .card {
+        background-color: #1e2430;
+        border-radius: 16px;
+        padding: 32px;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+
+      .logo {
+        font-size: 24px;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        color: #8b95a5;
+        font-size: 14px;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 16px;
+        border: 1px solid #2d3544;
+        border-radius: 8px;
+        background-color: #1a1f2c;
+        color: white;
+        font-size: 14px;
+        margin-bottom: 16px;
+        box-sizing: border-box;
+      }
+
+      .form-input:focus {
+        outline: none;
+        border-color: #3d4658;
+      }
+
+      .form-input::placeholder {
+        color: #8b95a5;
+      }
+
+      .button {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 8px;
+        background-color: #3d4658;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .button:hover {
+        background-color: #4d5668;
+      }
+
+      .button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      .result {
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: 8px;
+        background-color: #1a1f2c;
+        display: none;
+      }
+
+      .result.show {
+        display: block;
+      }
+
+      .result-url {
+        word-break: break-all;
+        color: #8b95a5;
+        font-size: 14px;
+      }
+
+      .snackbar {
+        visibility: hidden;
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #3d4658;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 1000;
+      }
+
+      .snackbar.show {
+        visibility: visible;
+        animation: fadein 0.3s, fadeout 0.3s 2.5s;
+      }
+
+      @keyframes fadein {
+        from {
+          bottom: 0;
+          opacity: 0;
+        }
+        to {
+          bottom: 24px;
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeout {
+        from {
+          bottom: 24px;
+          opacity: 1;
+        }
+        to {
+          bottom: 0;
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="header">
+          <div class="logo">Sorame</div>
+          <div class="subtitle">Free URL Shortener</div>
+        </div>
+
+        <input
+          type="text"
+          id="linkInput"
+          class="form-input"
+          placeholder="Paste your long URL here"
+          autofocus
+        />
+
+        <button id="shareButton" class="button">Shorten URL</button>
+
+        <div id="result" class="result">
+          <div id="resultUrl" class="result-url"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="snackbar"></div>
+
+    <script>
+      const linkInput = document.getElementById("linkInput");
+      const shareButton = document.getElementById("shareButton");
+      const result = document.getElementById("result");
+      const resultUrl = document.getElementById("resultUrl");
+      const snackbar = document.getElementById("snackbar");
+
+      function showSnackbar(message) {
+        snackbar.textContent = message;
+        snackbar.className = "snackbar show";
+        setTimeout(() => {
+          snackbar.className = snackbar.className.replace("show", "");
+        }, 3000);
+      }
+
+      async function shareLink() {
+        const url = linkInput.value.trim();
+
+        if (!url) {
+          showSnackbar("Please enter a URL");
+          return;
+        }
+
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+          showSnackbar("URL must start with http:// or https://");
+          return;
+        }
+
+        try {
+          shareButton.disabled = true;
+          shareButton.textContent = "Shortening...";
+
+          const response = await fetch("/link", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ data: url }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to shorten URL");
+          }
+
+          const data = await response.json();
+          const shareId = data.share_id;
+          const sharedUrl = `${window.location.origin}/link/${shareId}`;
+
+          resultUrl.textContent = sharedUrl;
+          result.classList.add("show");
+
+          // Copy to clipboard
+          await navigator.clipboard.writeText(sharedUrl);
+          showSnackbar("Shortened URL copied to clipboard!");
+        } catch (error) {
+          showSnackbar("Error shortening URL. Please try again.");
+          console.error("Error:", error);
+        } finally {
+          shareButton.disabled = false;
+          shareButton.textContent = "Shorten URL";
+        }
+      }
+
+      // Event listeners
+      shareButton.addEventListener("click", shareLink);
+      linkInput.addEventListener("keyup", (e) => {
+        if (e.key === "Enter") {
+          shareLink();
+        }
+      });
+    </script>
+  </body>
+</html>

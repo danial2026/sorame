@@ -8,9 +8,17 @@ import (
 
 // ServeStatic serves static HTML, CSS, JS files from the "static" directory and handles 404 errors
 func ServeStatic(staticDir string) http.Handler {
+	fs := http.FileServer(http.Dir(staticDir))
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get the path after removing the static prefix
+		path := r.URL.Path
+		if len(path) > 0 && path[0] == '/' {
+			path = path[1:]
+		}
+
 		// Create the full path to the requested file
-		filePath := filepath.Join(staticDir, r.URL.Path[len("/static/"):])
+		filePath := filepath.Join(staticDir, path)
 
 		// Check if the file exists
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -20,6 +28,6 @@ func ServeStatic(staticDir string) http.Handler {
 		}
 
 		// If the file exists, serve it
-		http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))).ServeHTTP(w, r)
+		fs.ServeHTTP(w, r)
 	})
 }

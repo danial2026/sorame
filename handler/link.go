@@ -57,7 +57,5 @@ func GetLink(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Link not found", http.StatusNotFound)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(link)
+	http.Redirect(w, r, link.Data, http.StatusFound)
 }

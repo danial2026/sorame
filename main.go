@@ -66,10 +66,10 @@ func main() {
 	router.Use(middleware.JsonLogging)
 
 	// API insert link
-	router.HandleFunc("/api/v1/link", handler.InsertLink).Methods("POST")
+	router.HandleFunc("/link", handler.InsertLink).Methods("POST")
 
 	// API get link
-	router.HandleFunc("/api/v1/link/{shareID}", handler.GetLink).Methods("GET")
+	router.HandleFunc("/link/{shareID}", handler.GetLink).Methods("GET")
 
 	// Status endpoint for health checks
 	router.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
