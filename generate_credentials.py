@@ -27,6 +27,7 @@ def update_env_file(env_path):
         'REDIS_COMMANDER_USER': 'admin',
         'REDIS_HOST': 'redis-service',
         'REDIS_PORT': '6379',
+        'REDIS_DB': '0',
         'REDIS_COMMANDER_PORT': '8081',
         'SORAME_SERVICE_PORT': '3000',
         'NETWORK_NAME': 'sorame-network'
@@ -48,6 +49,7 @@ def update_env_file(env_path):
             f.write(f"REDIS_HOST={env_vars['REDIS_HOST']}\n")
             f.write(f"REDIS_PORT={env_vars['REDIS_PORT']}\n")
             f.write(f"REDIS_PASSWORD={env_vars['REDIS_PASSWORD']}\n\n")
+            f.write(f"REDIS_DB={env_vars['REDIS_DB']}\n\n")
             
             # Write Redis Commander Configuration
             f.write("# Redis Commander Configuration\n")
