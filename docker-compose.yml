@@ -12,7 +12,7 @@ services:
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     networks:
-      - ${NETWORK_NAME}
+      - default
 
   redis-commander:
     image: rediscommander/redis-commander:latest
@@ -27,7 +27,7 @@ services:
     depends_on:
       - redis-service
     networks:
-      - ${NETWORK_NAME}
+      - default
 
   sorame-service:
     container_name: sorame-service
@@ -44,7 +44,7 @@ services:
       - redis-service
       - redis-commander
     networks:
-      - ${NETWORK_NAME}
+      - default
 
 networks:
   default:
