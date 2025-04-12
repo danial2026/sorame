@@ -1,0 +1,52 @@
+version: "3"
+services:
+  redis-service:
+    image: redis:latest
+    container_name: satullia_redis_dev
+    restart: always
+    ports:
+      - 26379:${REDIS_PORT}
+    volumes:
+      - ./redis/data:/data
+    command: redis-server --appendonly yes
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    networks:
+      - ${NETWORK_NAME}
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: satullia_redis_commander_dev
+    restart: always
+    environment:
+      - REDIS_HOSTS=local:${REDIS_HOST}:${REDIS_PORT}
+      - HTTP_USER=${REDIS_COMMANDER_USER}
+      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD}
+    ports:
+      - "28081:${REDIS_COMMANDER_PORT}"
+    depends_on:
+      - redis-service
+    networks:
+      - ${NETWORK_NAME}
+
+  sorame-service:
+    container_name: sorame-service
+    build: ./
+    restart: always
+    ports:
+      - ${SORAME_SERVICE_PORT}:${SORAME_SERVICE_PORT}
+    volumes:
+      - ./logs:/app/logs
+      - ./.env:/app/.env
+    env_file:
+      - ./.env
+    depends_on:
+      - redis-service
+      - redis-commander
+    networks:
+      - ${NETWORK_NAME}
+
+networks:
+  default:
+    external:
+      name: ${NETWORK_NAME}
