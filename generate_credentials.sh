@@ -15,5 +15,8 @@ fi
 # Run the Python script
 python3 generate_credentials.py
 
+# Source the .env file
+source .env
+
 # Create docker network if it doesn't exist
 docker network create $NETWORK_NAME
