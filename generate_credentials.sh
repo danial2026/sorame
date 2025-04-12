@@ -17,3 +17,6 @@ python3 generate_credentials.py
 
 # Make the script executable
 chmod +x generate_credentials.sh 
+
+# Create docker network if it doesn't exist
+docker network create ${NETWORK_NAME}
