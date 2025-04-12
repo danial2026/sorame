@@ -34,9 +34,23 @@ func (repo *LinkRepository) InsertLink(link *Link) (string, error) {
 
 	// Generate a unique ID for the link
 	linkUid := common.GenerateLinkUid()
+	key := "link:" + linkUid
+
+	// Check if the key already exists
+	for {
+		exists, err := repo.RedisClient.Exists(ctx, key).Result()
+		if err != nil {
+			log.Println("⚠️ Error checking if key exists:", err)
+			return "", err
+		}
+		if exists == 0 {
+			break
+		}
+		linkUid = common.GenerateLinkUid()
+		key = "link:" + linkUid
+	}
 
 	// Store in Redis with key pattern: link:{linkUid} and 30 day expiration
-	key := "link:" + linkUid
 	err = repo.RedisClient.Set(ctx, key, linkJSON, 30*24*time.Hour).Err()
 	if err != nil {
 		log.Println("⚠️ Error storing link in Redis:", err)
