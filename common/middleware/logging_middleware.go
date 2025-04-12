@@ -1,13 +1,9 @@
 package middleware
 
 import (
-	"bytes"
-	"fmt"
-	"io"
 	"log"
 	"log/slog"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -34,50 +30,27 @@ func Logging(next http.Handler) http.Handler {
 			statusCode:     http.StatusOK,
 		}
 
-		// Read and log the request body
-		bodyBytes, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Println("Error reading request body:", err)
-			return
-		}
-		// Restore the request body for further use
-		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-
-		if strings.Contains(fmt.Sprintf("%v", r.Header), "uptimerobot") == false && r.URL.Path != "/status" {
-			// Log the request details and response status
+		if r.URL.Path != "/status" {
+			// Log only non-identifying information
 			log.Println(
 				"➡️",
-				"handled request",
-				slog.Int("statusCode", wrapped.statusCode),
+				"request",
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
-				slog.Any("duration", time.Since(start)),
-				slog.String("xff", r.Header.Get("X-Forwarded-For")),
-			)
-
-			// Log the request details
-			log.Println(
-				"📥",
-				"request details",
-				slog.String("method", r.Method),
-				slog.String("path", r.URL.Path),
-				slog.String("headers", fmt.Sprintf("%v", r.Header)),
-				slog.String("body", string(bodyBytes)),
-				slog.String("queryParams", r.URL.RawQuery),
-				slog.String("xff", r.Header.Get("X-Forwarded-For")),
-			)
-
-			// Log the response details
-			log.Println(
-				"📤",
-				"response details",
-				slog.Int("statusCode", wrapped.statusCode),
-				slog.String("headers", fmt.Sprintf("%v", wrapped.Header())),
-				slog.Any("duration", time.Since(start)),
-				// Assuming the response body can be accessed via wrappedWriter
-				slog.String("responseBody", "(response body tracking not implemented)"),
+				slog.Any("time", time.Now().Format(time.RFC3339)),
 			)
 		}
+
 		next.ServeHTTP(wrapped, r) // Proceed to the next handler
+
+		if r.URL.Path != "/status" {
+			// Log only minimal response information
+			log.Println(
+				"📤",
+				"response",
+				slog.Int("statusCode", wrapped.statusCode),
+				slog.Any("duration", time.Since(start)),
+			)
+		}
 	})
 }

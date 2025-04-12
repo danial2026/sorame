@@ -125,6 +125,27 @@
         animation: fadein 0.3s, fadeout 0.3s 2.5s;
       }
 
+      .footer {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .footer-links {
+        font-size: 12px;
+        color: #8b95a5;
+      }
+
+      .footer-links a {
+        color: #8b95a5;
+        text-decoration: none;
+        margin: 0 10px;
+        transition: color 0.2s;
+      }
+
+      .footer-links a:hover {
+        color: #fff;
+      }
+
       @keyframes fadein {
         from {
           bottom: 0;
@@ -168,6 +189,13 @@
 
         <div id="result" class="result">
           <div id="resultUrl" class="result-url"></div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="footer-links">
+          <a href="/privacy.html">Privacy Policy</a> |
+          <a href="/terms.html">Terms of Service</a>
         </div>
       </div>
     </div>

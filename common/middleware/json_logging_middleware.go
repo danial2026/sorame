@@ -1,10 +1,7 @@
 package middleware
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -13,17 +10,13 @@ import (
 
 // LogEntry represents a structured log entry
 type LogEntry struct {
-	Timestamp     string      `json:"timestamp"`
-	Level         string      `json:"level"`
-	Message       string      `json:"message"`
-	Method        string      `json:"method,omitempty"`
-	Path          string      `json:"path,omitempty"`
-	StatusCode    int         `json:"statusCode,omitempty"`
-	Duration      string      `json:"duration,omitempty"`
-	Headers       http.Header `json:"headers,omitempty"`
-	Body          string      `json:"body,omitempty"`
-	QueryParams   string      `json:"queryParams,omitempty"`
-	XForwardedFor string      `json:"xff,omitempty"`
+	Timestamp  string `json:"timestamp"`
+	Level      string `json:"level"`
+	Message    string `json:"message"`
+	Method     string `json:"method,omitempty"`
+	Path       string `json:"path,omitempty"`
+	StatusCode int    `json:"statusCode,omitempty"`
+	Duration   string `json:"duration,omitempty"`
 }
 
 // JsonLogging middleware to log request and response details in JSON format
@@ -43,27 +36,15 @@ func JsonLogging(next http.Handler) http.Handler {
 			statusCode:     http.StatusOK,
 		}
 
-		// Read and log the request body
-		bodyBytes, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Printf("Error reading request body: %v", err)
-			return
-		}
-		// Restore the request body for further use
-		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-
-		// Log the request details
+		// Log the request details - only non-identifying information
 		requestLogEntry := LogEntry{
-			Timestamp:     time.Now().Format(time.RFC3339),
-			Level:         "info",
-			Message:       "Incoming request",
-			Method:        r.Method,
-			Path:          r.URL.Path,
-			Headers:       r.Header,
-			Body:          string(bodyBytes),
-			QueryParams:   r.URL.RawQuery,
-			XForwardedFor: r.Header.Get("X-Forwarded-For"),
+			Timestamp: time.Now().Format(time.RFC3339),
+			Level:     "info",
+			Message:   "Incoming request",
+			Method:    r.Method,
+			Path:      r.URL.Path,
 		}
+
 		jsonRequestLog, err := json.Marshal(requestLogEntry)
 		if err == nil {
 			// Save the request log to a file
@@ -84,14 +65,13 @@ func JsonLogging(next http.Handler) http.Handler {
 
 		next.ServeHTTP(wrapped, r) // Proceed to the next handler
 
-		// Log the response details
+		// Log the response details - minimal information
 		responseLogEntry := LogEntry{
 			Timestamp:  time.Now().Format(time.RFC3339),
-			Level:      fmt.Sprintf("status_%d", wrapped.statusCode),
+			Level:      "info",
 			Message:    "Outgoing response",
 			StatusCode: wrapped.statusCode,
 			Duration:   time.Since(start).String(),
-			Headers:    wrapped.Header(),
 		}
 		jsonResponseLog, err := json.Marshal(responseLogEntry)
 		if err == nil {
