@@ -57,5 +57,9 @@ func GetLink(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Link not found", http.StatusNotFound)
 		return
 	}
-	http.Redirect(w, r, link.Data, http.StatusFound)
+
+	// Redirect to the stored link with the original URL as param
+	redirectURL := link.Data + "?shareUrl=" + "https://" + r.Host + "/link/" + shareID
+
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
