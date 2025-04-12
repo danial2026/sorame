@@ -7,7 +7,7 @@ services:
     ports:
       - 26379:${REDIS_PORT}
     volumes:
-      - ./redis/data:/data
+      - ./.redis/data:/data
     command: redis-server --appendonly yes
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
